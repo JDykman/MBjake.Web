@@ -1,0 +1,26 @@
+# Traefik Middleware Configuration for {{PROJECT_NAME}} Development Environment
+# This middleware restricts access to development environments to:
+#   - Localhost (127.0.0.1/8)
+#   - Tailscale VPN network (100.64.0.0/10)
+#
+# Place this file in your Traefik dynamic configuration directory
+# (e.g., /etc/traefik/dynamic/ or wherever your Traefik watches for config files)
+
+http:
+  middlewares:
+    {{PROJECT_NAME}}-dev-ipwhitelist:
+      ipWhiteList:
+        sourceRange:
+          - "127.0.0.1/8"       # Localhost
+          - "100.64.0.0/10"     # Tailscale subnet
+          # Add any additional IP ranges or specific IPs here
+          # Example:
+          # - "192.168.1.0/24"  # Local network
+          # - "10.0.0.1/32"     # Specific IP
+        ipStrategy:
+          depth: 1
+          excludedIPs: []
+
+# Note: This middleware is automatically applied to the dev container
+# via the Traefik labels in compose.yaml when ENVIRONMENT=dev
+

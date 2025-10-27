@@ -1,0 +1,81 @@
+services:
+  {{CONTAINER_NAME}}:
+    container_name: {{CONTAINER_NAME}}
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: {{CONTAINER_NAME}}:latest
+    
+    # Rootless and security options
+    security_opt:
+      - no-new-privileges:true
+      - label=type:{{SELINUX_LABEL}}
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '{{CPU_LIMIT}}'
+          memory: {{MEMORY_LIMIT}}
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    
+    # Port mapping (host:container)
+    ports:
+      - "{{PORT_HOST}}:{{PORT_CONTAINER}}"
+    
+    # Networks
+    networks:
+      - {{NETWORK_NAME}}
+      # Remove this line for development:
+      # - {{PROXY_NETWORK}}
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:{{PORT_CONTAINER}}{{HEALTH_PATH}}"]
+      interval: {{HEALTH_INTERVAL}}
+      timeout: {{HEALTH_TIMEOUT}}
+      retries: {{HEALTH_RETRIES}}
+      start_period: {{HEALTH_START_PERIOD}}
+    
+    # Environment variables
+    environment:
+      - TZ={{TIMEZONE}}
+    
+    # Labels for Traefik (if using Traefik as reverse proxy)
+    labels:
+      - "traefik.enable={{TRAEFIK_ENABLE}}"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.rule=Host(`{{FULL_DOMAIN}}`)"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.entrypoints=websecure"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.tls={{ENABLE_SSL}}"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.tls.certresolver={{SSL_RESOLVER}}"
+      - "traefik.http.services.{{CONTAINER_NAME}}.loadbalancer.server.port={{PORT_CONTAINER}}"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.middlewares={{TRAEFIK_MIDDLEWARE}}"
+      
+      # For Caddy (alternative labels)
+      - "caddy={{FULL_DOMAIN}}"
+      - "caddy.reverse_proxy={{CONTAINER_NAME}} {{PORT_CONTAINER}}"
+    
+    # Read-only root filesystem (enhanced security - disabled for dev, enable for production)
+    # read_only: {{READONLY_ROOTFS}}
+    
+    # Temporary filesystem mounts (optional for read-only mode)
+    # tmpfs:
+    #   - /tmp:rw,noexec,nosuid,size=64m
+    #   - /var/cache/nginx:rw,noexec,nosuid,size=32m
+    #   - /var/run:rw,noexec,nosuid,size=16m
+
+networks:
+  {{NETWORK_NAME}}:
+    driver: bridge
+    name: {{NETWORK_NAME}}
+  
+  # External network for reverse proxy communication (optional - uncomment for production)
+  # {{PROXY_NETWORK}}:
+  #   external: true
+  #   name: {{PROXY_NETWORK}}
+

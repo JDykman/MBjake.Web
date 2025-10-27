@@ -1,0 +1,25 @@
+# Minimal Development Configuration
+# Only specify what differs from defaults or what's required
+
+# Required
+PROJECT_NAME=myproject
+PROJECT_DISPLAY_NAME="My Project"
+PROJECT_TYPE=static-site
+DOMAIN=example.com
+BUILD_COMMAND="npm run build"
+BUILD_OUTPUT=dist
+
+# Environment
+ENVIRONMENT=dev
+
+# Dev-specific settings (lower resources, dev branch)
+MEMORY_LIMIT=256M
+CPU_LIMIT=0.5
+PROCESS_LIMIT=50
+GIT_BRANCH=develop
+READONLY_ROOTFS=false
+
+# Port auto-allocated by registry
+PORT_CONTAINER=8080
+PORT_HOST=
+

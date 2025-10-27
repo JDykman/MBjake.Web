@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PROJECT_DISPLAY_NAME}}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{PROJECT_DISPLAY_NAME}}</h1>
+            <p class="tagline">Welcome to {{PROJECT_DISPLAY_NAME}}</p>
+        </header>
+        
+        <main>
+            <section class="hero">
+                <h2>Your Site is Live! 🚀</h2>
+                <p>This is a minimal starting point for your static site.</p>
+                <p class="status">✓ Container is running successfully</p>
+            </section>
+            
+            <section class="info">
+                <h3>Next Steps:</h3>
+                <ul>
+                    <li>Edit <code>src/index.html</code> to customize this page</li>
+                    <li>Add your styles in <code>src/style.css</code></li>
+                    <li>Add JavaScript in <code>src/script.js</code></li>
+                    <li>Run <code>npm run build</code> to build for production</li>
+                </ul>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 {{PROJECT_DISPLAY_NAME}}. All rights reserved.</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+

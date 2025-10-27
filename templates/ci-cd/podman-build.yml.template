@@ -1,0 +1,158 @@
+name: Podman Build and Deploy
+
+on:
+  push:
+    branches: [ {{GIT_BRANCH}} ]
+  pull_request:
+    branches: [ {{GIT_BRANCH}} ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: {{PROJECT_NAME}}
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-test:
+    name: Build and Test Container
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+      
+      - name: Verify Podman installation
+        run: |
+          podman --version
+          podman info
+      
+      - name: Build container image
+        run: |
+          podman build \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            -t ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -f Containerfile \
+            .
+      
+      - name: Test container
+        run: |
+          # Start container
+          podman run -d \
+            --name test-container \
+            -p {{PORT_CONTAINER}}:{{PORT_CONTAINER}} \
+            ${{ env.IMAGE_NAME }}:latest
+          
+          # Wait for container to be ready
+          sleep 10
+          
+          # Test health endpoint
+          curl -f http://localhost:{{PORT_CONTAINER}}{{HEALTH_PATH}} || exit 1
+          
+          # Test main page
+          curl -f http://localhost:{{PORT_CONTAINER}}/ || exit 1
+          
+          # Stop and remove container
+          podman stop test-container
+          podman rm test-container
+      
+      - name: Scan image for vulnerabilities
+        run: |
+          # Install trivy
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+          
+          # Scan image
+          trivy image --severity HIGH,CRITICAL ${{ env.IMAGE_NAME }}:latest
+      
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+      
+      - name: Push to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          IMAGE_ID=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          
+          podman tag ${{ env.IMAGE_NAME }}:latest $IMAGE_ID:latest
+          podman tag ${{ env.IMAGE_NAME }}:${{ github.sha }} $IMAGE_ID:${{ github.sha }}
+          
+          podman push $IMAGE_ID:latest
+          podman push $IMAGE_ID:${{ github.sha }}
+      
+      - name: Generate SBOM
+        run: |
+          # Install syft
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          
+          # Generate SBOM
+          syft packages ${{ env.IMAGE_NAME }}:latest -o json > sbom.json
+      
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+
+  deploy:
+    name: Deploy to Production
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/{{GIT_BRANCH}}'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          
+          # Add host to known_hosts
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+          
+          # Deploy using SSH
+          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+            cd {{DEPLOY_DIR}}
+            git pull origin {{GIT_BRANCH}}
+            bash deploy.sh
+          EOF
+      
+      - name: Verify deployment
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          # Wait for deployment
+          sleep 10
+          
+          # Check if site is accessible
+          curl -f https://$DEPLOY_HOST{{HEALTH_PATH}} || exit 1
+      
+      - name: Create deployment notification
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✓ Deployment successful"
+          else
+            echo "✗ Deployment failed"
+            exit 1
+          fi
+
