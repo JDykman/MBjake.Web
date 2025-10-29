@@ -2,13 +2,13 @@ name: Podman Build and Deploy
 
 on:
   push:
-    branches: [ {{GIT_BRANCH}} ]
+    branches: [ develop ]
   pull_request:
-    branches: [ {{GIT_BRANCH}} ]
+    branches: [ develop ]
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: {{PROJECT_NAME}}
+  IMAGE_NAME: mbjake
   REGISTRY: ghcr.io
 
 jobs:
@@ -47,17 +47,17 @@ jobs:
           # Start container
           podman run -d \
             --name test-container \
-            -p {{PORT_CONTAINER}}:{{PORT_CONTAINER}} \
+            -p 8080:8080 \
             ${{ env.IMAGE_NAME }}:latest
           
           # Wait for container to be ready
           sleep 10
           
           # Test health endpoint
-          curl -f http://localhost:{{PORT_CONTAINER}}{{HEALTH_PATH}} || exit 1
+          curl -f http://localhost:8080/health || exit 1
           
           # Test main page
-          curl -f http://localhost:{{PORT_CONTAINER}}/ || exit 1
+          curl -f http://localhost:8080/ || exit 1
           
           # Stop and remove container
           podman stop test-container
@@ -109,7 +109,7 @@ jobs:
     name: Deploy to Production
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/{{GIT_BRANCH}}'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     
     steps:
       - name: Checkout code
@@ -131,8 +131,8 @@ jobs:
           
           # Deploy using SSH
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-            cd {{DEPLOY_DIR}}
-            git pull origin {{GIT_BRANCH}}
+            cd 
+            git pull origin develop
             bash deploy.sh
           EOF
       
@@ -144,7 +144,7 @@ jobs:
           sleep 10
           
           # Check if site is accessible
-          curl -f https://$DEPLOY_HOST{{HEALTH_PATH}} || exit 1
+          curl -f https://$DEPLOY_HOST/health || exit 1
       
       - name: Create deployment notification
         if: always()
@@ -155,4 +155,3 @@ jobs:
             echo "✗ Deployment failed"
             exit 1
           fi
-

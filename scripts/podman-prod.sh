@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Podman Production Deployment Script for {{PROJECT_DISPLAY_NAME}}
+# Podman Production Deployment Script for Made By Jake
 # This script deploys the application to production using Podman
 
 echo "======================================"
-echo "{{PROJECT_DISPLAY_NAME}} - Production Deployment"
+echo "Made By Jake - Production Deployment"
 echo "======================================"
 
 # Colors for output
@@ -16,10 +16,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-CONTAINER_NAME="{{CONTAINER_NAME}}"
-IMAGE_NAME="{{CONTAINER_NAME}}:latest"
-HOST_PORT="${HOST_PORT:-{{PORT_HOST}}}"
-NETWORK_NAME="{{NETWORK_NAME}}"
+CONTAINER_NAME="mbjake-prod"
+IMAGE_NAME="mbjake-prod:latest"
+HOST_PORT="${HOST_PORT:-8005}"
+NETWORK_NAME="mbjake-prod-network"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Check if running as root
@@ -39,8 +39,8 @@ echo -e "${GREEN}✓ Podman is installed${NC}"
 # Port registry integration
 REGISTRY_DIR="${PODMAN_PORT_REGISTRY_DIR:-${HOME}/.local/share/podman-ports}"
 REGISTRY_FILE="$REGISTRY_DIR/registry.json"
-PROJECT_NAME="{{PROJECT_NAME}}"
-ENVIRONMENT="{{ENVIRONMENT}}"
+PROJECT_NAME="mbjake"
+ENVIRONMENT="prod"
 
 # Function to ensure port is registered
 ensure_port_registered() {
@@ -135,7 +135,7 @@ start_container() {
     podman run -d \
         --name $CONTAINER_NAME \
         --network $NETWORK_NAME \
-        -p ${HOST_PORT}:{{PORT_CONTAINER}} \
+        -p ${HOST_PORT}:8080 \
         --security-opt no-new-privileges:true \
         --restart unless-stopped \
         $IMAGE_NAME
@@ -197,7 +197,7 @@ main() {
         
         echo ""
         echo "Container is accessible at: http://localhost:${HOST_PORT}"
-        echo "Or via domain (if reverse proxy is configured): https://{{FULL_DOMAIN}}"
+        echo "Or via domain (if reverse proxy is configured): https://mbjake.com"
         echo ""
         echo "Useful commands:"
         echo "  View logs:        podman logs -f $CONTAINER_NAME"
@@ -212,4 +212,3 @@ main() {
 
 # Run main deployment
 main
-

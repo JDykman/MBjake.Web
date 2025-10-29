@@ -1,0 +1,80 @@
+services:
+  mbjake-dev:
+    container_name: mbjake-dev
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: mbjake-dev:latest
+    
+    # Rootless and security options
+    security_opt:
+      - no-new-privileges:true
+      - label=type:container_runtime_t
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    
+    # Port mapping (host:container)
+    ports:
+      - "8000:8080"
+    
+    # Networks
+    networks:
+      - mbjake-dev-network
+      # Remove this line for development:
+      # - proxy-network
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+    # Environment variables
+    environment:
+      - TZ=America/Chicago
+    
+    # Labels for Traefik (if using Traefik as reverse proxy)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mbjake-dev.rule=Host(`dev.mbjake.com`)"
+      - "traefik.http.routers.mbjake-dev.entrypoints=websecure"
+      - "traefik.http.routers.mbjake-dev.tls=true"
+      - "traefik.http.routers.mbjake-dev.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mbjake-dev.loadbalancer.server.port=8080"
+      - "traefik.http.routers.mbjake-dev.middlewares=mbjake-dev-ipwhitelist@file"
+      
+      # For Caddy (alternative labels)
+      - "caddy=dev.mbjake.com"
+      - "caddy.reverse_proxy=mbjake-dev 8080"
+    
+    # Read-only root filesystem (enhanced security - disabled for dev, enable for production)
+    # read_only: false
+    
+    # Temporary filesystem mounts (optional for read-only mode)
+    # tmpfs:
+    #   - /tmp:rw,noexec,nosuid,size=64m
+    #   - /var/cache/nginx:rw,noexec,nosuid,size=32m
+    #   - /var/run:rw,noexec,nosuid,size=16m
+
+networks:
+  mbjake-dev-network:
+    driver: bridge
+    name: mbjake-dev-network
+  
+  # External network for reverse proxy communication (optional - uncomment for production)
+  # proxy-network:
+  #   external: true
+  #   name: proxy-network

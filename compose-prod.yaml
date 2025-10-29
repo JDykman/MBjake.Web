@@ -1,0 +1,80 @@
+services:
+  mbjake-prod:
+    container_name: mbjake-prod
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: mbjake-prod:latest
+    
+    # Rootless and security options
+    security_opt:
+      - no-new-privileges:true
+      - label=type:container_runtime_t
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    
+    # Port mapping (host:container)
+    ports:
+      - "8005:8080"
+    
+    # Networks
+    networks:
+      - mbjake-prod-network
+      # Remove this line for development:
+      # - proxy-network
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+    # Environment variables
+    environment:
+      - TZ=America/Chicago
+    
+    # Labels for Traefik (if using Traefik as reverse proxy)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mbjake-prod.rule=Host(`mbjake.com`)"
+      - "traefik.http.routers.mbjake-prod.entrypoints=websecure"
+      - "traefik.http.routers.mbjake-prod.tls=true"
+      - "traefik.http.routers.mbjake-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mbjake-prod.loadbalancer.server.port=8080"
+      - "traefik.http.routers.mbjake-prod.middlewares="
+      
+      # For Caddy (alternative labels)
+      - "caddy=mbjake.com"
+      - "caddy.reverse_proxy=mbjake-prod 8080"
+    
+    # Read-only root filesystem (enhanced security - disabled for dev, enable for production)
+    # read_only: true
+    
+    # Temporary filesystem mounts (optional for read-only mode)
+    # tmpfs:
+    #   - /tmp:rw,noexec,nosuid,size=64m
+    #   - /var/cache/nginx:rw,noexec,nosuid,size=32m
+    #   - /var/run:rw,noexec,nosuid,size=16m
+
+networks:
+  mbjake-prod-network:
+    driver: bridge
+    name: mbjake-prod-network
+  
+  # External network for reverse proxy communication (optional - uncomment for production)
+  # proxy-network:
+  #   external: true
+  #   name: proxy-network

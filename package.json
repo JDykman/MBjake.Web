@@ -1,7 +1,7 @@
 {
-  "name": "{{PROJECT_NAME}}",
+  "name": "mbjake",
   "version": "1.0.0",
-  "description": "{{PROJECT_DISPLAY_NAME}} - Static Site",
+  "description": "Made By Jake - Static Site",
   "scripts": {
     "build": "npm run build:copy",
     "build:copy": "mkdir -p dist && cp -r src/* dist/",
@@ -12,4 +12,3 @@
   "author": "",
   "license": "ISC"
 }
-

@@ -1,5 +1,5 @@
 # Build stage
-FROM docker.io/library/node:{{NODE_VERSION}}-alpine as builder
+FROM docker.io/library/node:20-alpine as builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN if [ -f package-lock.json ]; then \
 COPY . .
 
 # Build the application
-RUN {{BUILD_COMMAND}}
+RUN npm run build
 
 # Production stage
 FROM docker.io/library/nginx:alpine
@@ -26,7 +26,7 @@ FROM docker.io/library/nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built files from builder stage
-COPY --from=builder /app/{{BUILD_OUTPUT}} /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Nginx alpine already runs as non-root user 'nginx' (UID 101, GID 101)
 # Ensure proper permissions
@@ -40,13 +40,12 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
 USER nginx
 
 # Expose port (rootless friendly)
-EXPOSE {{PORT_CONTAINER}}
+EXPOSE 8080
 
 # Health check
-HEALTHCHECK --interval={{HEALTH_INTERVAL}} --timeout={{HEALTH_TIMEOUT}} --start-period={{HEALTH_START_PERIOD}} --retries={{HEALTH_RETRIES}} \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:{{PORT_CONTAINER}}{{HEALTH_PATH}} || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Security: Run as non-root, read-only root filesystem
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
-

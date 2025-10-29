@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e # Exit immediately if a command exits with a non-zero status.
 
-# Podman-based Deployment Script for {{PROJECT_DISPLAY_NAME}}
+# Podman-based Deployment Script for Made By Jake
 # This script pulls the latest code and deploys using Podman
 
 echo "======================================"
-echo "{{PROJECT_DISPLAY_NAME}} - Podman Deployment"
+echo "Made By Jake - Podman Deployment"
 echo "======================================"
 
 # Colors
@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-PROJECT_DIR="{{DEPLOY_DIR}}"
+PROJECT_DIR=""
 
 # Navigate to the project directory
 cd "$PROJECT_DIR" || { echo -e "${RED}Deployment failed: Project directory not found.${NC}"; exit 1; }
@@ -23,7 +23,7 @@ echo -e "${GREEN}✓ Changed to project directory${NC}"
 
 # Pull the latest changes from the git repository
 echo "Pulling latest changes from Git..."
-git pull origin {{GIT_BRANCH}}
+git pull origin develop
 echo -e "${GREEN}✓ Latest changes pulled successfully${NC}"
 
 # Check if Podman is installed
@@ -42,4 +42,3 @@ echo ""
 echo "======================================"
 echo -e "${GREEN}✓ Deployment Complete!${NC}"
 echo "======================================"
-

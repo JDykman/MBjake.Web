@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Podman Development Script for {{PROJECT_DISPLAY_NAME}}
+# Podman Development Script for Made By Jake
 # This script sets up the local development environment using Podman
 
 echo "======================================"
-echo "{{PROJECT_DISPLAY_NAME}} - Podman Development Setup"
+echo "Made By Jake - Podman Development Setup"
 echo "======================================"
 
 # Colors for output
@@ -26,9 +26,9 @@ echo -e "${GREEN}✓ Podman is installed${NC}"
 # Port registry integration
 REGISTRY_DIR="${PODMAN_PORT_REGISTRY_DIR:-${HOME}/.local/share/podman-ports}"
 REGISTRY_FILE="$REGISTRY_DIR/registry.json"
-PROJECT_NAME="{{PROJECT_NAME}}"
-ENVIRONMENT="{{ENVIRONMENT}}"
-PORT_HOST={{PORT_HOST}}
+PROJECT_NAME="mbjake"
+ENVIRONMENT="dev"
+PORT_HOST=8000
 
 # Function to ensure port is registered
 ensure_port_registered() {
@@ -120,8 +120,8 @@ fi
 # Function to stop existing containers
 stop_existing() {
     echo "Stopping existing containers..."
-    podman stop {{CONTAINER_NAME}} 2>/dev/null || true
-    podman rm {{CONTAINER_NAME}} 2>/dev/null || true
+    podman stop mbjake-dev 2>/dev/null || true
+    podman rm mbjake-dev 2>/dev/null || true
     echo -e "${GREEN}✓ Cleaned up existing containers${NC}"
 }
 
@@ -139,19 +139,19 @@ run_with_compose() {
 # Function to build and run with podman directly
 run_with_podman() {
     echo "Building container with Podman..."
-    podman build -t {{CONTAINER_NAME}}:latest -f Containerfile .
+    podman build -t mbjake-dev:latest -f Containerfile .
     
     echo "Creating network if it doesn't exist..."
-    podman network create {{NETWORK_NAME}} 2>/dev/null || true
+    podman network create mbjake-dev-network 2>/dev/null || true
     
     echo "Starting container..."
     podman run -d \
-        --name {{CONTAINER_NAME}} \
-        --network {{NETWORK_NAME}} \
-        -p {{PORT_HOST}}:{{PORT_CONTAINER}} \
+        --name mbjake-dev \
+        --network mbjake-dev-network \
+        -p 8000:8080 \
         --security-opt no-new-privileges:true \
         --restart unless-stopped \
-        {{CONTAINER_NAME}}:latest
+        mbjake-dev:latest
     
     echo -e "${GREEN}✓ Container started successfully${NC}"
 }
@@ -173,15 +173,15 @@ container_healthy=false
 
 while [ $attempt -lt $max_attempts ]; do
     # Check if container is running
-    if ! podman ps --format "{{.Names}}" | grep -q "^{{CONTAINER_NAME}}$"; then
+    if ! podman ps --format "{{.Names}}" | grep -q "^mbjake-dev$"; then
         echo ""
         echo -e "${RED}✗ Container is not running${NC}"
-        echo "Check logs with: podman logs {{CONTAINER_NAME}}"
+        echo "Check logs with: podman logs mbjake-dev"
         exit 1
     fi
     
     # Query health status using inspect (safe, doesn't trigger checks)
-    health_status=$(podman inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' {{CONTAINER_NAME}} 2>/dev/null)
+    health_status=$(podman inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' mbjake-dev 2>/dev/null)
     
     if [ "$health_status" = "none" ]; then
         # Container doesn't have a health check configured
@@ -199,7 +199,7 @@ while [ $attempt -lt $max_attempts ]; do
         echo ""
         echo -e "${RED}✗ Container is unhealthy${NC}"
         echo "Last 20 lines of container logs:"
-        podman logs --tail 20 {{CONTAINER_NAME}}
+        podman logs --tail 20 mbjake-dev
         exit 1
     fi
     
@@ -212,10 +212,10 @@ done
 if [ "$container_healthy" = false ]; then
     echo ""
     echo -e "${YELLOW}⚠ Health check timed out - container may still be starting${NC}"
-    echo "Current health status: $(podman inspect --format '{{.State.Health.Status}}' {{CONTAINER_NAME}} 2>/dev/null || echo 'unknown')"
+    echo "Current health status: $(podman inspect --format '{{.State.Health.Status}}' mbjake-dev 2>/dev/null || echo 'unknown')"
     echo ""
     echo "Last 20 lines of container logs:"
-    podman logs --tail 20 {{CONTAINER_NAME}}
+    podman logs --tail 20 mbjake-dev
 fi
 
 # Display container info
@@ -223,18 +223,17 @@ echo ""
 echo "======================================"
 echo "Container Information"
 echo "======================================"
-podman ps --filter name={{CONTAINER_NAME}} --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+podman ps --filter name=mbjake-dev --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 echo ""
 echo -e "${GREEN}✓ Development environment is ready!${NC}"
 echo ""
-echo "Access your site at: http://localhost:{{PORT_HOST}}"
-echo "Or via domain (if Traefik is configured): https://{{FULL_DOMAIN}}"
+echo "Access your site at: http://localhost:8000"
+echo "Or via domain (if Traefik is configured): https://dev.mbjake.com"
 echo ""
 echo "Useful commands:"
-echo "  View logs:        podman logs -f {{CONTAINER_NAME}}"
-echo "  Stop container:   podman stop {{CONTAINER_NAME}}"
-echo "  Remove container: podman rm {{CONTAINER_NAME}}"
-echo "  Shell access:     podman exec -it {{CONTAINER_NAME}} sh"
-echo "  Health check:     curl http://localhost:{{PORT_HOST}}{{HEALTH_PATH}}"
-
+echo "  View logs:        podman logs -f mbjake-dev"
+echo "  Stop container:   podman stop mbjake-dev"
+echo "  Remove container: podman rm mbjake-dev"
+echo "  Shell access:     podman exec -it mbjake-dev sh"
+echo "  Health check:     curl http://localhost:8000/health"

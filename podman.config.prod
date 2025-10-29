@@ -1,0 +1,25 @@
+# Minimal Production Configuration
+# Only specify what differs from defaults or what's required
+
+# Required
+PROJECT_NAME=mbjake
+PROJECT_DISPLAY_NAME="Made By Jake"
+PROJECT_TYPE=static-site
+DOMAIN=mbjake.com
+BUILD_COMMAND="npm run build"
+BUILD_OUTPUT=dist
+
+# Environment
+ENVIRONMENT=prod
+
+# Prod-specific settings (higher resources, main branch)
+MEMORY_LIMIT=512M
+CPU_LIMIT=1.0
+PROCESS_LIMIT=100
+GIT_BRANCH=main
+READONLY_ROOTFS=true
+
+# Port auto-allocated by registry
+PORT_CONTAINER=8080
+PORT_HOST=
+

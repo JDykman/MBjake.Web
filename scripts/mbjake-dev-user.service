@@ -1,0 +1,30 @@
+[Unit]
+Description=Made By Jake Container (Rootless - dev)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+RemainAfterExit=yes
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+# Podman rootless commands
+ExecStartPre=-/usr/bin/podman stop mbjake-dev
+ExecStartPre=-/usr/bin/podman rm mbjake-dev
+
+ExecStart=/usr/bin/podman run \
+    --name mbjake-dev \
+    --network proxy-network \
+    -p 8000:8080 \
+    --security-opt no-new-privileges:true \
+    mbjake-dev:latest
+
+ExecStop=/usr/bin/podman stop -t 10 mbjake-dev
+ExecStopPost=-/usr/bin/podman rm -f mbjake-dev
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

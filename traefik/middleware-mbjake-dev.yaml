@@ -1,4 +1,4 @@
-# Traefik Middleware Configuration for {{PROJECT_NAME}} Development Environment
+# Traefik Middleware Configuration for mbjake Development Environment
 # This middleware restricts access to development environments to:
 #   - Localhost (127.0.0.1/8)
 #   - Tailscale VPN network (100.64.0.0/10)
@@ -8,7 +8,7 @@
 
 http:
   middlewares:
-    {{PROJECT_NAME}}-dev-ipwhitelist:
+    mbjake-dev-ipwhitelist:
       ipWhiteList:
         sourceRange:
           - "127.0.0.1/8"       # Localhost
@@ -23,4 +23,3 @@ http:
 
 # Note: This middleware is automatically applied to the dev container
 # via the Traefik labels in compose.yaml when ENVIRONMENT=dev
-
