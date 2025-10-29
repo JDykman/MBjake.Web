@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 # Configuration
 CONTAINER_NAME="mbjake-prod"
 IMAGE_NAME="mbjake-prod:latest"
-HOST_PORT="${HOST_PORT:-8005}"
+HOST_PORT="${HOST_PORT:-8006}"
 NETWORK_NAME="mbjake-prod-network"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

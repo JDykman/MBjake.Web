@@ -23,7 +23,7 @@ services:
     
     # Port mapping (host:container)
     ports:
-      - "8000:8080"
+      - "8005:8080"
     
     # Networks
     networks:

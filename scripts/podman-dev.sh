@@ -28,7 +28,7 @@ REGISTRY_DIR="${PODMAN_PORT_REGISTRY_DIR:-${HOME}/.local/share/podman-ports}"
 REGISTRY_FILE="$REGISTRY_DIR/registry.json"
 PROJECT_NAME="mbjake"
 ENVIRONMENT="dev"
-PORT_HOST=8000
+PORT_HOST=8005
 
 # Function to ensure port is registered
 ensure_port_registered() {
@@ -148,7 +148,7 @@ run_with_podman() {
     podman run -d \
         --name mbjake-dev \
         --network mbjake-dev-network \
-        -p 8000:8080 \
+        -p 8005:8080 \
         --security-opt no-new-privileges:true \
         --restart unless-stopped \
         mbjake-dev:latest
@@ -228,7 +228,7 @@ podman ps --filter name=mbjake-dev --format "table {{.Names}}\t{{.Status}}\t{{.P
 echo ""
 echo -e "${GREEN}✓ Development environment is ready!${NC}"
 echo ""
-echo "Access your site at: http://localhost:8000"
+echo "Access your site at: http://localhost:8005"
 echo "Or via domain (if Traefik is configured): https://dev.mbjake.com"
 echo ""
 echo "Useful commands:"
@@ -236,4 +236,4 @@ echo "  View logs:        podman logs -f mbjake-dev"
 echo "  Stop container:   podman stop mbjake-dev"
 echo "  Remove container: podman rm mbjake-dev"
 echo "  Shell access:     podman exec -it mbjake-dev sh"
-echo "  Health check:     curl http://localhost:8000/health"
+echo "  Health check:     curl http://localhost:8005/health"
