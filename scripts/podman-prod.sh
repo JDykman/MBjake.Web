@@ -134,6 +134,7 @@ start_container() {
     
     podman run -d \
         --name $CONTAINER_NAME \
+        --replace \
         --network $NETWORK_NAME \
         -p ${HOST_PORT}:8080 \
         --security-opt no-new-privileges:true \
