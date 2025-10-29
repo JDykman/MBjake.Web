@@ -18,20 +18,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Contact form handling
     const contactForm = document.querySelector('.contact-form');
     if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
+        contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = {
-                name: this.querySelector('input[type="text"]').value,
-                email: this.querySelector('input[type="email"]').value,
-                message: this.querySelector('textarea').value
-            };
+            const formData = new FormData(this);
+            const status = document.createElement('p');
             
-            console.log('Form submitted:', formData);
+            try {
+                const response = await fetch(this.action, {
+                    method: this.method,
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    status.textContent = "Thanks for your submission!";
+                    status.style.color = "#7ed321";
+                    this.reset();
+                } else {
+                    const data = await response.json();
+                    if (Object.hasOwn(data, 'errors')) {
+                        status.textContent = data["errors"].map(error => error["message"]).join(", ");
+                    } else {
+                        status.textContent = "Oops! There was a problem submitting your form";
+                    }
+                    status.style.color = "red";
+                }
+            } catch (error) {
+                status.textContent = "Oops! There was a problem submitting your form";
+                status.style.color = "red";
+            }
             
-            alert('Thank you for your message! I\'ll get back to you soon.');
+            this.appendChild(status);
             
-            this.reset();
+            setTimeout(() => {
+                status.remove();
+            }, 5000);
         });
     }
 

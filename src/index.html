@@ -102,10 +102,10 @@ class WebDeveloper {
     <section class="contact" id="contact">
         <h2>Let's Build Something Great</h2>
         <p>Ready to start your project? Get in touch.</p>
-        <form class="contact-form">
-            <input type="text" placeholder="Your Name" required>
-            <input type="email" placeholder="Your Email" required>
-            <textarea placeholder="Tell me about your project..." required></textarea>
+        <form class="contact-form" action="https://formspree.io/f/mkgpbqzk" method="POST">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <textarea name="message" placeholder="Tell me about your project..." required></textarea>
             <button type="submit" class="cta-button">Send Message</button>
         </form>
     </section>
