@@ -3,12 +3,20 @@
   "version": "1.0.0",
   "description": "Made By Jake - Static Site",
   "scripts": {
-    "build": "npm run build:copy",
-    "build:copy": "mkdir -p dist && cp -r src/* dist/",
+    "start": "npm run dev",
     "dev": "npx http-server src -p 3000",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "build": "npm run clean && mkdir -p dist && npm run build:html && npm run build:css && npm run build:js",
+    "build:html": "html-minifier --input-dir src --output-dir dist --file-ext html --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype",
+    "build:css": "cleancss -o dist/style.css src/style.css",
+    "build:js": "terser src/script.js -o dist/script.js -c -m"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "html-minifier": "^4.0.0",
+    "terser": "^5.44.0"
+  }
 }

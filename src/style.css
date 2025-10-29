@@ -142,8 +142,8 @@ body {
 
 .portfolio-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 50px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -153,12 +153,36 @@ body {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
 
 .project-card:hover {
     transform: scale(1.02);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+a.project-card {
+    position: relative;
+}
+
+a.project-card::after {
+    content: '→';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5rem;
+    color: #7ed321;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+a.project-card:hover::after {
+    opacity: 1;
+    transform: translateX(5px);
 }
 
 .project-image {
@@ -166,11 +190,97 @@ body {
     height: 250px;
     background: linear-gradient(135deg, #1a1f36, #7ed321);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.2rem;
     font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+.project-logo {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    z-index: 1;
+}
+
+.project-subtitle {
+    font-size: 1rem;
+    font-weight: 400;
+    opacity: 0.9;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    z-index: 1;
+}
+
+/* Midwest Unilabs Styling */
+.project-card-mul {
+    border: 2px solid #0f172a;
+}
+
+.project-image-mul {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+}
+
+.project-image-mul::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(148, 163, 184, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+.tech-tag-mul {
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+
+/* Holter Enterprise Styling */
+.project-card-holter {
+    border: 2px solid #1a2332;
+}
+
+.project-image-holter {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a7c 50%, #4a90e2 100%);
+}
+
+.project-image-holter::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(74, 144, 226, 0.2) 0%, transparent 70%);
+    animation: rotate 15s linear infinite;
+}
+
+.project-image-holter .project-logo {
+    font-size: 2rem;
+    letter-spacing: 0.15em;
+}
+
+.tech-tag-holter {
+    background: #2d4a7c;
+    color: #93c5fd;
+    border: 1px solid #4a90e2;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .project-info {
@@ -249,5 +359,13 @@ body {
     
     .portfolio-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .project-logo {
+        font-size: 2rem;
+    }
+    
+    .project-image-holter .project-logo {
+        font-size: 1.5rem;
     }
 }
