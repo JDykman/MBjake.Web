@@ -22,6 +22,14 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy the Nginx configuration file
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Grant permissions to the Nginx user
+RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+# Switch to the non-root user
+USER nginx
+
 # Expose port 8080
 EXPOSE 8080
 
