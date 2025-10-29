@@ -19,8 +19,18 @@ NC='\033[0m' # No Color
 CONTAINER_NAME="mbjake-prod"
 IMAGE_NAME="mbjake-prod:latest"
 HOST_PORT="${HOST_PORT:-8006}"
-NETWORK_NAME="mbjake-prod-network"
+NETWORK_NAME="proxy-network"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Traefik Labels
+TRAEFIK_LABELS=(
+    "--label" "traefik.enable=true"
+    "--label" "traefik.http.routers.mbjake-prod.rule=Host(\`mbjake.com\`)"
+    "--label" "traefik.http.routers.mbjake-prod.entrypoints=websecure"
+    "--label" "traefik.http.routers.mbjake-prod.tls.certresolver=letsencrypt"
+    "--label" "traefik.http.services.mbjake-prod.loadbalancer.server.port=8080"
+    "--label" "traefik.docker.network=proxy-network"
+)
 
 # Check if running as root
 if [ "$EUID" -eq 0 ]; then
@@ -137,6 +147,7 @@ start_container() {
         --replace \
         --network $NETWORK_NAME \
         -p ${HOST_PORT}:8080 \
+        "${TRAEFIK_LABELS[@]}" \
         --security-opt no-new-privileges:true \
         --restart unless-stopped \
         $IMAGE_NAME
